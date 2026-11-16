@@ -8,7 +8,7 @@ key = st.text_input("Enter API Key", type="password")
 if key:
     text = st.text_area("Paste text here:")
     if text and st.button("Summarize"):
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + key
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + key
         data = {
             "contents": [{
                 "parts": [{"text": "Please summarize this text: " + text}]
