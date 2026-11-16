@@ -8,7 +8,7 @@ user_api_key = st.text_input("Enter your Google AI Studio API Key", type="passwo
 if user_api_key:
     try:
         genai.configure(api_key=user_api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-pro')
 
         uploaded_file = st.file_uploader("Choose a text or PDF file", type=["pdf", "txt"])
         if uploaded_file is not None:
