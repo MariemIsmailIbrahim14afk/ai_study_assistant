@@ -19,4 +19,4 @@ if user_api_key:
     except Exception as e:
         st.error(f"Error: {e}")
 else:
-    st.warning("Please enter your Google AI Studio API key in the field above to start the app.")
+    st.warning("Please enter your Google AI Studio API key in the field above to start the
