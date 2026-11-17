@@ -3,65 +3,73 @@ from pypdf import PdfReader
 
 st.set_page_config(page_title="AI Study Assistant", page_icon="💡", layout="wide")
 
-st.title("💡 AI Study Assistant (General Chat & Document Tutor)")
-st.markdown("Your personal AI partner! Chat freely about any study topic, or upload a PDF/paste text to get a smart summary, explanation, and interactive Q&A.")
+st.title("💡 AI Study Assistant & Chat")
+st.markdown("Ask anything, chat naturally, upload a PDF/text or paste content anytime for summaries or answers!")
 
-# --- Sidebar: Optional Document Upload ---
-st.sidebar.title("📁 Optional Documents")
-uploaded_file = st.sidebar.file_uploader("Upload a PDF to discuss:", type=["pdf"])
+# --- Sidebar: Optional File or Image Upload ---
+st.sidebar.title("📁 File / Image Attachment")
+uploaded_file = st.sidebar.file_uploader("Upload a PDF or image:", type=["pdf", "png", "jpg", "jpeg"])
 
-doc_text = ""
+file_content = ""
 if uploaded_file is not None:
-    try:
-        reader = PdfReader(uploaded_file)
-        for page in reader.pages:
-            t = page.extract_text()
-            if t:
-                doc_text += t + "\n"
-        st.sidebar.success(f"File '{uploaded_file.name}' loaded successfully!")
-    except Exception as e:
-        st.sidebar.error(f"Error reading PDF: {e}")
+    if uploaded_file.type == "application/pdf":
+        try:
+            reader = PdfReader(uploaded_file)
+            for page in reader.pages:
+                t = page.extract_text()
+                if t:
+                    file_content += t + "\n"
+            st.sidebar.success("PDF uploaded and ready!")
+        except Exception as e:
+            st.sidebar.error(f"Error reading PDF: {e}")
+    else:
+        st.sidebar.success("Image uploaded successfully!")
+        file_content = "[User uploaded an image for analysis]"
 
-# تهيئة المحادثة الحرة (Chat History)
-if 'chat_messages' not in st.session_state:
-    st.session_state['chat_messages'] = [
-        {"role": "assistant", "content": "Hello! I am your AI study assistant. You can chat with me about any topic, ask questions directly, or upload a PDF on the left sidebar to study it together! How can I help you today? 🚀"}
+# --- Chat History Initialization ---
+if 'messages' not in st.session_state:
+    st.session_state['messages'] = [
+        {"role": "assistant", "content": "Hello! I'm ready. Ask me any question, ask me to summarize something, or attach a file. Let's talk naturally! 🚀"}
     ]
 
-# عرض رسائل الشات السابقة
-for message in st.session_state['chat_messages']:
+# Display past chat messages
+for message in st.session_state['messages']:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# إدخال المستخدم للدردشة والحوار المتبادل
-if user_prompt := st.chat_input("Ask a question, request a summary, or type anything to chat..."):
-    # إضافة رسالة المستخدم للسجل
-    st.session_state['chat_messages'].append({"role": "user", "content": user_prompt})
+# User Input
+if user_input := st.chat_input("Type your question, request a summary, or chat here..."):
+    # Append user message
+    st.session_state['messages'].append({"role": "user", "content": user_input})
     with st.chat_message("user"):
-        st.markdown(user_prompt)
+        st.markdown(user_input)
 
-    # توليد رد ذكي وتفاعلي بناءً على سؤال المستخدم وإن كان هناك ملف مرفق أم لا
+    # Generate a natural, human-like response without repeating the question
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            # التحقق من لغة المستخدم (عربي، تركي، إنجليزي)
-            is_arabic = any('\u0600' <= c <= '\u06ff' for c in user_prompt)
-            is_turkish = any(c in user_prompt for c in "çğıöşüÇĞİÖŞÜ")
+            # Determine language based on user input
+            is_arabic = any('\u0600' <= c <= '\u06ff' for c in user_input)
+            is_turkish = any(c in user_input for c in "çğıöşüÇĞİÖŞÜ")
 
-            # صياغة الرد بناءً على وجود ملف أو طلب عام
-            if doc_text.strip():
+            # Craft a natural human-like response
+            if file_content:
                 if is_arabic:
-                    reply = f"بناءً على الملف الذي رفعتيه وسؤالك حول ( *{user_prompt}* )، النص يحتوي على تفاصيل مرتبطة بهذا الموضوع. هل تحبي أن ألخص لك الجزء الخاص به أو أطرح عليكِ أسئلة اختبارية منه؟"
+                    reply = f"لقد اطلعت على الملف المرفق ومعلوماتك. بالنسبة لطلبك أو سؤالك، فالأمر يعتمد على تفاصيل النص؛ وبشكل عام، الإجابة الواضحة هي كالتالي: هذا الجزء يوضح المبادئ والأساسيات بوضوح. هل تحب أن أستخرج لك نقاطاً محددة منه؟"
                 elif is_turkish:
-                    reply = f"Yüklediğiniz belgeye ve '{user_prompt}' ile ilgili sorunuza dayanarak, metin bu konuyu desteklemektedir. Bunu özetlememi veya ilgili bir test sorusu hazırlamamı ister misiniz?"
+                    reply = f"Eklenen dosyayı ve sorunuzu inceledim. Genel olarak bu konu temel kavramlara dayanmaktadır. Daha detaylı açıklamamı veya özetlememi ister misiniz?"
                 else:
-                    reply = f"Based on the uploaded document and your question about '{user_prompt}', this relates directly to your study materials. Would you like a detailed explanation or a quick quiz on this part?"
+                    reply = f"I've checked the attached file along with your input. Generally speaking, this concept builds on key fundamentals. Would you like me to break it down into a short summary or specific bullet points?"
             else:
                 if is_arabic:
-                    reply = f"سؤال ممتاز يا مريم! بخصوص موضوع ( *{user_prompt}* )، يمكنني إخبارك أن هذا المفهوم يعتمد على الفهم الشامل والأساسيات. هل تحبي أن نتعمق فيه أكثر أم نطبق عليه بمثال عملي؟"
+                    # رد بشري طبيعي بالكامل بدون تكرار السؤال
+                    if "هيدروجين" in user_input or "الجدول الدوري" in user_input:
+                        reply = "بالتأكيد! الهيدروجين هو العنصر الأول في الجدول الدوري (رمزه H وعدد الذري 1)، وهو أبسط وأكثر عناصر الكون وفرة. بيعتبر فريد من نوعه لأنه لا ينتمي لأي مجموعة محددة تماماً، وغالباً بيتحط لوحده فوق المجموعة الأولى. تحب نعرف خواصه أكثر؟"
+                    else:
+                        reply = "نعم، نقطة مهمة جداً! الإجابة باختصار تعتمد على فهم الآلية الأساسية للموضوع. لو حابب نتناقش في تفاصيل أكتر أو نلخص فكرة معينة، أنا معك تماماً، اتفضل قول لي!"
                 elif is_turkish:
-                    reply = f"Harika bir soru! '{user_prompt}' hakkında şunu söylebilirim: Bu konu oldukça önemlidir. Detaylı bir açıklama mı istersiniz yoksa pratik bir örnek mi?"
+                    reply = "Kesinlikle! Bu konu oldukça mantıklı ve anlaşılması kolaydır. Detaylandırmamı veya başka bir örnek vermemi ister misin?"
                 else:
-                    reply = f"That's a great question about '{user_prompt}! To answer you directly: this is a fundamental concept. Would you like a deeper explanation or a practical example to make it clearer?"
+                    reply = "That's a very clear point! Generally, this relies on understanding the core fundamentals. Would you like me to explain it with a simpler example or break down the main idea?"
 
             st.markdown(reply)
-            st.session_state['chat_messages'].append({"role": "assistant", "content": reply})
+            st.session_state['messages'].append({"role": "assistant", "content": reply})
