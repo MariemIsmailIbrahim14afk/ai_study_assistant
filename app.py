@@ -1,10 +1,27 @@
 import streamlit as st
+from pypdf import PdfReader
 
 st.title("AI Study Assistant")
 
-study_text = st.text_area("Paste your study text here:")
+option = st.radio("Choose input method:", ["Upload PDF", "Type/Paste Text"])
 
-if study_text:
+study_text = ""
+
+if option == "Upload PDF":
+    uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
+    if uploaded_file is not None:
+        try:
+            reader = PdfReader(uploaded_file)
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    study_text += text + "\n"
+        except Exception as e:
+            st.error(f"Error reading PDF file: {e}")
+else:
+    study_text = st.text_area("Paste your study text here:")
+
+if study_text.strip():
     if st.button("Summarize"):
         with st.spinner("Analyzing and summarizing..."):
             words = study_text.split()
@@ -20,4 +37,4 @@ if study_text:
             st.markdown("2. This text emphasizes important concepts that require detailed review.")
             st.markdown("3. *Practice Question:* What is the main message conveyed in this text?")
 else:
-    st.warning("Please paste your text above to get the instant summary.")
+    st.info("Please upload a PDF file or type/paste text above to get the instant summary.")
