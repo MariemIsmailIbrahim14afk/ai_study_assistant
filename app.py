@@ -24,17 +24,21 @@ else:
 if study_text.strip():
     if st.button("Summarize"):
         with st.spinner("Analyzing and summarizing..."):
-            words = study_text.split()
-            summary_length = max(5, len(words) // 3)
-            summary = " ".join(words[:summary_length]) + "..."
+            sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()) > 20]
             
             st.success("Summary Generated Successfully!")
-            st.write("### Key Summary:")
-            st.write(summary)
             
-            st.write("### Key Points & Questions:")
-            st.markdown(f"1. Main topic focus: *{words[0] if words else 'Study Text'}*")
-            st.markdown("2. This text emphasizes important concepts that require detailed review.")
-            st.markdown("3. *Practice Question:* What is the main message conveyed in this text?")
+            st.write("### Key Summary:")
+            if len(sentences) >= 3:
+                st.markdown(f"- {sentences[0]}.")
+                st.markdown(f"- {sentences[len(sentences)//2]}.")
+                st.markdown(f"- {sentences[-1]}.")
+            else:
+                st.markdown(f"- {study_text[:300]}...")
+            
+            st.write("### Key Points & Review Questions:")
+            st.markdown("1. *Main Concept:* The text highlights essential principles and key arguments regarding the core topic.")
+            st.markdown("2. *Important Detail:* Pay close attention to the primary examples and factors discussed in the reading.")
+            st.markdown("3. *Practice Question:* What are the main takeaways and conclusions presented in this text?")
 else:
     st.info("Please upload a PDF file or type/paste text above to get the instant summary.")
