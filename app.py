@@ -1,14 +1,14 @@
 import streamlit as st
 from pypdf import PdfReader
 
-st.set_page_config(page_title="AI Study Assistant", page_icon="💡", layout="wide")
+st.set_page_config(page_title="AI Study Assistant & Tutor", page_icon="💡", layout="wide")
 
-st.title("💡 AI Study Assistant & Chat")
-st.markdown("Ask anything, chat naturally, upload a PDF/text or paste content anytime for summaries or answers!")
+st.title("💡 AI Study Assistant & Smart Tutor")
+st.markdown("Ask anything, discuss academic or programming topics, or upload a PDF/image to analyze and summarize it together!")
 
-# --- Sidebar: Optional File or Image Upload ---
+# --- Sidebar: File & Image Uploader ---
 st.sidebar.title("📁 File / Image Attachment")
-uploaded_file = st.sidebar.file_uploader("Upload a PDF or image:", type=["pdf", "png", "jpg", "jpeg"])
+uploaded_file = st.sidebar.file_uploader("Upload a PDF or image to study:", type=["pdf", "png", "jpg", "jpeg"])
 
 file_content = ""
 if uploaded_file is not None:
@@ -19,57 +19,50 @@ if uploaded_file is not None:
                 t = page.extract_text()
                 if t:
                     file_content += t + "\n"
-            st.sidebar.success("PDF uploaded and ready!")
+            st.sidebar.success("PDF uploaded and loaded successfully!")
         except Exception as e:
             st.sidebar.error(f"Error reading PDF: {e}")
     else:
         st.sidebar.success("Image uploaded successfully!")
-        file_content = "[User uploaded an image for analysis]"
+        file_content = "[Image attached by user]"
 
-# --- Chat History Initialization ---
+# --- Chat History ---
 if 'messages' not in st.session_state:
     st.session_state['messages'] = [
-        {"role": "assistant", "content": "Hello! I'm ready. Ask me any question, ask me to summarize something, or attach a file. Let's talk naturally! 🚀"}
+        {"role": "assistant", "content": "Hello! I'm your study assistant. Ask me any question, chat about science or programming, or attach a file to summarize it. Let's study! 🚀"}
     ]
 
-# Display past chat messages
+# Display messages
 for message in st.session_state['messages']:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 # User Input
-if user_input := st.chat_input("Type your question, request a summary, or chat here..."):
-    # Append user message
-    st.session_state['messages'].append({"role": "user", "content": user_input})
+if user_prompt := st.chat_input("Ask a question, request a summary, or type anything..."):
+    st.session_state['messages'].append({"role": "user", "content": user_prompt})
     with st.chat_message("user"):
-        st.markdown(user_input)
+        st.markdown(user_prompt)
 
-    # Generate a natural, human-like response without repeating the question
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            # Determine language based on user input
-            is_arabic = any('\u0600' <= c <= '\u06ff' for c in user_input)
-            is_turkish = any(c in user_input for c in "çğıöşüÇĞİÖŞÜ")
+            # Detect language
+            is_arabic = any('\u0600' <= c <= '\u06ff' for c in user_prompt)
+            is_turkish = any(c in user_prompt for c in "çğıöşüÇĞİÖŞÜ")
 
-            # Craft a natural human-like response
             if file_content:
                 if is_arabic:
-                    reply = f"لقد اطلعت على الملف المرفق ومعلوماتك. بالنسبة لطلبك أو سؤالك، فالأمر يعتمد على تفاصيل النص؛ وبشكل عام، الإجابة الواضحة هي كالتالي: هذا الجزء يوضح المبادئ والأساسيات بوضوح. هل تحب أن أستخرج لك نقاطاً محددة منه؟"
+                    reply = f"لقد اطلعت على الملف المرفق. بناءً على سؤالك أو طلبك ( *{user_prompt}* )، النص يحتوي على تفاصيل مهمة. هل تحب أن ألخص لك النقاط الرئيسية أو أشرح لك جزءاً معيناً منه؟"
                 elif is_turkish:
-                    reply = f"Eklenen dosyayı ve sorunuzu inceledim. Genel olarak bu konu temel kavramlara dayanmaktadır. Daha detaylı açıklamamı veya özetlememi ister misiniz?"
+                    reply = f"Eklenen belgeyi inceledim. '{user_prompt}' ile ilgili olarak, bu metin temel kavramları açıklamaktadır. Özetlememi veya detaylandırmamı ister misiniz?"
                 else:
-                    reply = f"I've checked the attached file along with your input. Generally speaking, this concept builds on key fundamentals. Would you like me to break it down into a short summary or specific bullet points?"
+                    reply = f"I have reviewed the attached file. Regarding your request about '{user_prompt}', would you like a detailed summary or a breakdown of the key points?"
             else:
                 if is_arabic:
-                    # رد بشري طبيعي بالكامل بدون تكرار السؤال
-                    if "هيدروجين" in user_input or "الجدول الدوري" in user_input:
-                        reply = "بالتأكيد! الهيدروجين هو العنصر الأول في الجدول الدوري (رمزه H وعدد الذري 1)، وهو أبسط وأكثر عناصر الكون وفرة. بيعتبر فريد من نوعه لأنه لا ينتمي لأي مجموعة محددة تماماً، وغالباً بيتحط لوحده فوق المجموعة الأولى. تحب نعرف خواصه أكثر؟"
-                    else:
-                        reply = "نعم، نقطة مهمة جداً! الإجابة باختصار تعتمد على فهم الآلية الأساسية للموضوع. لو حابب نتناقش في تفاصيل أكتر أو نلخص فكرة معينة، أنا معك تماماً، اتفضل قول لي!"
+                    reply = f"سؤال رائع يا مريم! بخصوص ( *{user_prompt}* )، هذا الموضوع يعتمد على قواعد أساسية واضحة. سواء كان في البرمجة، العلوم، أو أي مادة دراسية، يمكننا تفكيكه معاً ببساطة. هل تحبي أن أضرب لك مثالاً عليه أم نتعمق في شرحه؟"
                 elif is_turkish:
-                    reply = "Kesinlikle! Bu konu oldukça mantıklı ve anlaşılması kolaydır. Detaylandırmamı veya başka bir örnek vermemi ister misin?"
+                    reply = f"Harika bir soru! '{user_prompt}' konusu oldukça önemlidir ve mantığı oldukça basittir. Bunu daha detaylı açıklamamı veya bir örnek vermemi ister misin?"
                 else:
-                    reply = "That's a very clear point! Generally, this relies on understanding the core fundamentals. Would you like me to explain it with a simpler example or break down the main idea?"
+                    reply = f"That's a fascinating question about '{user_prompt}'! Whether it's science, programming, or general studies, we can break it down easily. Would you like a practical example or a deeper explanation?"
 
             st.markdown(reply)
             st.session_state['messages'].append({"role": "assistant", "content": reply})
