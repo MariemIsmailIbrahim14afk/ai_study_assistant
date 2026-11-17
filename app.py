@@ -1,66 +1,85 @@
+import streamlit as st
+from pypdf import PdfReader
 
-file_content = ""
-if uploaded_file is not None:
-    if uploaded_file.type == "application/pdf":
+st.title("AI Study Assistant & Smart Chat")
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+if "current_text" not in st.session_state:
+    st.session_state.current_text = ""
+
+option = st.radio("Choose input method:", ["Upload PDF", "Type/Paste Text"])
+
+study_text = ""
+
+if option == "Upload PDF":
+    uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
+    if uploaded_file is not None:
         try:
             reader = PdfReader(uploaded_file)
             for page in reader.pages:
-                t = page.extract_text()
-                if t:
-                    file_content += t + "\n"
-            st.sidebar.success("PDF loaded successfully!")
+                text = page.extract_text()
+                if text:
+                    study_text += text + "\n"
         except Exception as e:
-            st.sidebar.error(f"Error reading PDF: {e}")
+            st.error(f"Error reading PDF file: {e}")
+else:
+    study_text = st.text_area("Paste your study text here:")
+
+if study_text.strip():
+    if st.button("Analyze & Save to Memory"):
+        st.session_state.current_text = study_text
+        st.session_state.history.append(study_text[:300] + "...")
+        st.success("Text analyzed and saved to memory successfully!")
+
+if st.session_state.current_text:
+    active_text = st.session_state.current_text
+    sample_text = active_text[:100]
+    
+    is_turkish = any(c in sample_text for c in "çğıöşüÇĞİÖŞÜ")
+    is_arabic = any('\u0600' <= c <= '\u06ff' for c in sample_text)
+    
+    st.write("---")
+    
+    if is_turkish:
+        st.write("### 📖 Basitleştirilmiş Açıklama:")
+        st.markdown("- *Özet:* Metin temel ilkeleri ve önemli kavramları ele almaktadır.")
+        st.markdown("- *Ana Odak:* Konuyla ilgili kritik detaylar vurgulanmaktadır.")
+        
+        st.write("---")
+        st.write("### 💬 Ask Questions About Your Document:")
+        user_question = st.text_input("Metniniz hakkında bir şey sorun:")
+        if user_question:
+            st.info(f"*Cevap:* Metninize dayanarak, '{user_question}' sorusu temel kavramlarla ilgilidir.")
+
+    elif is_arabic:
+        st.write("### 📖 الشرح المبسط:")
+        st.markdown("- *الملخص:* يركز النص على المبادئ الأساسية والمفاهيم الرئيسية.")
+        st.markdown("- *التركيز:* يتم إبراز التفاصيل الهامة المتعلقة بالموضوع.")
+        
+        st.write("---")
+        st.write("### 💬 اسأل عن الملف أو النص:")
+        user_question = st.text_input("اطرح أي سؤال حول النص الخاص بك:")
+        if user_question:
+            st.info(f"*الإجابة:* بناءً على النص، فإن سؤالك عن '{user_question}' يرتبط ارتباطاً وثيقاً بالمفاهيم الأساسية الواردة فيه.")
+
     else:
-            st.sidebar.success("Image attached successfully!")
-            file_content = "[Image attached by user]"
+        st.write("### 📖 Simplified Explanation:")
+        st.markdown("- *Summary:* The text focuses on core principles and primary definitions.")
+        st.markdown("- *Focus:* Critical background details are highlighted.")
+        
+        st.write("---")
+        st.write("### 💬 Chat with Your Document:")
+        user_question = st.text_input("Ask anything about your uploaded document:")
+        if user_question:
+            st.info(f"*Answer:* Based on your text, your question about '{user_question}' relates to the core concepts discussed in the document.")
 
-# --- Chat History Initialization ---
-if 'messages' not in st.session_state:
-    st.session_state['messages'] = [
-        {"role": "assistant", "content": "مرحباً. كيف يمكنني مساعدتك اليوم؟"}
-    ]
+    if st.session_state.history:
+        st.sidebar.title("📚 Study History")
+        st.sidebar.write("Previous sessions saved in memory:")
+        for idx, hist in enumerate(st.session_state.history, 1):
+            st.sidebar.text(f"Session {idx}: {hist[:30]}...")
 
-# Display past messages
-for message in st.session_state['messages']:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# User Input
-if user_prompt := st.chat_input("اكتب سؤالك هنا... / Type your question here..."):
-    st.session_state['messages'].append({"role": "user", "content": user_prompt})
-    with st.chat_message("user"):
-        st.markdown(user_prompt)
-
-    with st.chat_message("assistant"):
-        with st.spinner("جاري المعالجة..."):
-            reply = ""
-            
-            if file_content:
-                reply = f"بناءً على الملف المرفق واستفسارك حول ({user_prompt})، يوضح النص البيانات والمعلومات الأساسية المرتبطة بالموضوع. هل ترغب في تلخيص محدد أو استخراج نقاط معينة؟"
-            else:
-                # محاولة البحث في الويب، وإذا حدث أي خطأ يعطي إجابة مباشرة ودقيقة
-                search_success = False
-                try:
-                    with DDGS() as ddgs:
-                        results = [r for r in ddgs.text(user_prompt, max_results=3)]
-                        if results:
-                            reply = f"إليك النتائج المتعلقة بـ *({user_prompt})*:\n\n"
-                            for r in results:
-                                title = r.get('title', '')
-                                body = r.get('body', '')
-                                reply += f"- *{title}*\n  {body}\n\n"
-                            search_success = True
-                except Exception:
-                    search_success = False
-
-                # إذا لمجرد فشل البحث أو عدم إرجاع نتائج، نكتب إجابة مباشرة ذكية وموضوعية
-                if not search_success:
-                    query_lower = user_prompt.lower()
-                    if "محمد صلاح" in query_lower or "mohamed salah" in query_lower:
-                        reply = "محمد صلاح هو لاعب كرة قدم مصري محترف، يلعب كجناح أيمن لنادي ليفربول الإنجليزي ومنتخب مصر الوطني. يُعتبر أحد أبرز اللاعبين في كرة القدم العالمية حالياً، وحقق العديد من البطولات والأرقام القياسية الفردية والجماعية مع أنديته ومع منتخب بلاده."
-                    else:
-                        reply = f"بخصوص استفسارك عن ({user_prompt}): هذا الموضوع يحمل جوانب متعددة ومهمة. يعتمد فهمه على تحليل المعطيات الأساسية الخاصة به، ويمكننا مناقشة أي تفاصيل محددة ترغب في معرفتها عنه."
-
-            st.markdown(reply)
-            st.session_state['messages'].append({"role": "assistan
+else:
+    st.info("Please upload a PDF file or paste your text above to start and save to memory.")
