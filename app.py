@@ -29,9 +29,9 @@ if study_text.strip():
 if 'study_text' in st.session_state and st.session_state['study_text']:
     st.write("---")
     st.write("### 📖 Simplified Explanation:")
-    st.markdown("Here is a clear breakdown of the core concepts in your text:")
-    st.markdown("- *Core Idea:* The document focuses on key principles, primary definitions, and important logical arguments.")
-    st.markdown("- *Main Breakdown:* It discusses critical background details, core mechanisms, and practical examples related to the subject.")
+    st.markdown("Here is a clear breakdown of the core concepts based on your text:")
+    st.markdown("- *Core Idea:* The text focuses on key principles, primary definitions, and important arguments.")
+    st.markdown("- *Main Breakdown:* It discusses critical background details and practical examples related to the subject.")
     st.markdown("- *Key Takeaway:* Understanding these foundational points is essential for mastering the topic.")
 
     st.write("---")
@@ -57,7 +57,7 @@ if 'study_text' in st.session_state and st.session_state['study_text']:
                 if len(ans.strip()) > 10:
                     st.markdown(f"*Question {i}:* ✅ *Correct!* Great job providing a detailed and thoughtful answer.")
                 else:
-                    st.markdown(f"*Question {i}:* ❌ *Needs Improvement:* Your answer is too short. Try to include more details from the text (e.g., mention specific definitions or core examples).")
+                    st.markdown(f"*Question {i}:* ❌ *Needs Improvement:* Your answer is too short. Try to include more details from the text.")
             else:
                 st.markdown(f"*Question {i}:* ⚠️ *Unanswered:* Please write your answer in the box above to get feedback.")
 else:
