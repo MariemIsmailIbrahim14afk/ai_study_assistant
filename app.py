@@ -1,15 +1,3 @@
-import streamlit as st
-from pypdf import PdfReader
-from duckduckgo_search import DDGS
-
-st.set_page_config(page_title="AI Assistant", page_icon="🤖", layout="wide")
-
-st.title("🤖 AI Assistant")
-st.markdown("Ask anything, search the web, or upload documents for summary and analysis.")
-
-# --- Sidebar: Optional File or Image Attachment ---
-st.sidebar.title("📁 File / Image Attachment")
-uploaded_file = st.sidebar.file_uploader("Upload a file or image (optional):", type=["pdf", "png", "jpg", "jpeg"])
 
 file_content = ""
 if uploaded_file is not None:
@@ -75,4 +63,4 @@ if user_prompt := st.chat_input("اكتب سؤالك هنا... / Type your quest
                         reply = f"بخصوص استفسارك عن ({user_prompt}): هذا الموضوع يحمل جوانب متعددة ومهمة. يعتمد فهمه على تحليل المعطيات الأساسية الخاصة به، ويمكننا مناقشة أي تفاصيل محددة ترغب في معرفتها عنه."
 
             st.markdown(reply)
-            st.session_state['messages'].append({"role": "assistant", "content": reply})
+            st.session_state['messages'].append({"role": "assistan
