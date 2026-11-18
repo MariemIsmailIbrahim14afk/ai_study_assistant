@@ -37,7 +37,7 @@ if st.button("Generate Explanation & Quiz"):
     else:
         try:
             # استخدام الموديل الجديد الموصى به من جوجل
-            model = genai.GenerativeModel("gemini-pro")
+            model = genai.GenerativeModel("gemini-pro-latest")
             
             prompt = f"""
 You are an expert AI quiz generator and study assistant. 
