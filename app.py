@@ -36,10 +36,17 @@ if st.button("Generate Explanation & Quiz"):
         st.warning("Please provide some text or upload a PDF first!")
     else:
         try:
-            # تم ضبط اسم الموديل بطريقة نظيفة وبسيطة جداً لتجنب أي خطأ 404
-            model = genai.GenerativeModel("gemini-1.5-pro")
+            # الحل الذكي: البحث التلقائي عن أول نموذج توليد محتوى متاح ومفعل على حسابك
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
             
-            prompt = f"""
+            if not available_models:
+                st.error("No available generative models found for your API key.")
+            else:
+                # استخدام أول موديل متاح أوتوماتيكياً من السيرفر
+                selected_model_name = available_models[0]
+                model = genai.GenerativeModel(selected_model_name)
+                
+                prompt = f"""
 You are an expert AI quiz generator and study assistant. 
 1. Read the provided text/document carefully and extract key facts, numbers, names, and specific details.
 2. Provide a *Quick & Clear Explanation* breaking down the core concepts.
@@ -51,10 +58,10 @@ You are an expert AI quiz generator and study assistant.
 Input Text:
 {input_text}
 """
-            with st.spinner("Generating explanation and direct quiz using AI..."):
-                response = model.generate_content(prompt)
-                st.markdown("### 📖 Study Results & Direct Quiz:")
-                st.write(response.text)
+                with st.spinner(f"Generating explanation using model ({selected_model_name})..."):
+                    response = model.generate_content(prompt)
+                    st.markdown("### 📖 Study Results & Direct Quiz:")
+                    st.write(response.text)
                 
         except Exception as e:
             st.error(f"An error occurred: {e}")
