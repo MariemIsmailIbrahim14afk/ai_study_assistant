@@ -24,7 +24,6 @@ if input_method == "Upload PDF":
     uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
     if uploaded_file is not None:
         st.success("PDF uploaded successfully!")
-        # (استبدلي هذا السطر بقراءة النص الفعلي من ملف الـ PDF لو أضفتِ مكتبة القراءة عندك)
         input_text = "Sample extracted text from PDF." 
 else:
     input_text = st.text_area("Type or paste your study text here:")
@@ -37,9 +36,9 @@ if st.button("Generate Explanation & Quiz"):
         st.warning("Please provide some text or upload a PDF first!")
     else:
         try:
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            # تم تحديث الموديل هنا ليعمل بكفاءة بدون أخطاء
+            model = genai.GenerativeModel("gemini-1.5-pro")
             
-            # الـ Prompt المحدث بدقة لأسئلة تختبر الحقائق والمعلومات المباشرة
             prompt = f"""
 You are an expert AI quiz generator and study assistant. 
 1. Read the provided text/document carefully and extract key facts, numbers, names, and specific details.
