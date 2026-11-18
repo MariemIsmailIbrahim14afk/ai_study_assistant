@@ -1,4 +1,5 @@
 import streamlit as st
+import random
 
 st.title("AI Personal Study Teacher")
 
@@ -29,8 +30,7 @@ if study_text.strip():
     is_turkish = any(c in sample_text for c in "çğıöşüÇĞİÖŞÜ")
     is_arabic = any('\u0600' <= c <= '\u06ff' for c in sample_text)
     
-    # استخراج الجمل بطريقة نظيفة
-    raw_sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()) > 25]
+    raw_sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()] > 25]
     sentences = []
     for s in raw_sentences:
         if s not in sentences:
@@ -43,85 +43,97 @@ if study_text.strip():
     
     if is_turkish:
         st.write("### 📖 Detaylı ve Sabırlı Açıklama:")
-        st.markdown("Metniniz dikkatlice incelendi ve şu temel noktalar çıkarıldı:")
-        st.markdown(f"1. *Ana Odak:* '{sentences[0][:100]}...' - Bu ifade konunun temel taşını oluşturur.")
+        st.markdown(f"1. *Ana Odak:* '{sentences[0][:100]}...'")
         if len(sentences) > 1:
-            st.markdown(f"2. *Detay ve Mantık:* '{sentences[len(sentences)//2][:100]}...' - Burada olayın veya kavramın sebebi açıklanmaktadır.")
+            st.markdown(f"2. *Detay ve Mantık:* '{sentences[len(sentences)//2][:100]}...'")
 
         st.write("---")
-        st.write(f"### 📝 Pratik Soruları ({num_questions} Soru)")
-        st.markdown("Aşağıdaki soruları dikkatlice okuyup cevaplayın:")
+        st.write(f"### 📝 Test Soruları (Çoktan Seçmeli ve Doğru/Yanlış - {num_questions} Soru)")
 
         for i in range(num_questions):
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            # صيغة سؤال طبيعية ومباشرة بدون جمل محفوظة
-            st.write(f"*Soru {i+1}:* '{target_sent[:70]}...' ifadesine göre, bu durum neden ve nasıl gerçekleşmektedir? Açıklayınız.")
-            
-            ans = st.text_input(f"Soru {i+1} cevabınız:", key=f"tr_ans_{i}")
-            
-            if st.button(f"Soru {i+1} Kontrol Et", key=f"tr_btn_{i}"):
-                if ans.strip():
-                    if len(ans.strip()) > 8:
-                        st.success(f"✅ Harika! Çok mantıklı bir açıklama yaptınız.")
+            # التنويع بين اختيار من متعدد وصح وغلط
+            if i % 2 == 0:
+                st.write(f"*Soru {i+1} (Çoktan Seçmeli):* '{target_sent[:70]}...' ifadesi ile ilgili aşağıdakilerden hangisi söylenebilir?")
+                choice = st.radio(
+                    f"Seçiniz (Soru {i+1}):",
+                    [
+                        "A) Konunun temel tanımı ve amacıdır.",
+                        "B) Sadece rastgele bir örnek teşkil eder.",
+                        "C) Metnin ana fikri ile çelişmektedir.",
+                        "D) Hiçbiri"
+                    ],
+                    key=f"tr_mc_{i}"
+                )
+                if st.button(f"Soru {i+1} Kontrol Et", key=f"tr_btn_{i}"):
+                    if choice.startswith("A"):
+                        st.success("✅ Doğru! Harika bir analiz.")
                     else:
-                        st.warning(f"❌ Biraz kısa oldu. Nedenini veya nasıllığını biraz daha detaylandırın.")
-                else:
-                    st.error(f"⚠️ Lütfen önce cevابınızı yazın.")
+                        st.warning("❌ Yanlış. Doğru seçenek A olmalıdır.")
+            else:
+                st.write(f"*Soru {i+1} (Doğru / Yanlış):* '{target_sent[:70]}...' ifadesi bu konunun temel mantığını yansıtır.")
+                tf_choice = st.radio(f"Seçiniz (Soru {i+1}):", ["Doğru (True)", "Yanlış (False)"], key=f"tr_tf_{i}")
+                if st.button(f"Soru {i+1} Kontrol Et", key=f"tr_btn_{i}"):
+                    if tf_choice.startswith("Doğru"):
+                        st.success("✅ Tebrikler, doğru cevap!")
+                    else:
+                        st.warning("❌ Yanlıش، العبارة صحيحة في سياق النص.")
             st.write("---")
 
     elif is_arabic:
         st.write("### 📖 الشرح المفصل والمهدئ:")
-        st.markdown("قمت بتحليل النص الذي أرسلتِه لنفهم فكرته بعمق:")
-        st.markdown(f"1. *الفكرة الأساسية:* '{sentences[0][:100]}...' - هذه هي القاعدة التي يبدأ منها فهم الموضوع.")
+        st.markdown(f"1. *الفكرة الأساسية:* '{sentences[0][:100]}...'")
         if len(sentences) > 1:
-            st.markdown(f"2. *السبب والمنطق:* '{sentences[len(sentences)//2][:100]}...' - وهنا يوضح النص سبب حدوث هذا الأمر.")
+            st.markdown(f"2. *التحليل والسبب:* '{sentences[len(sentences)//2][:100]}...'")
 
         st.write("---")
-        st.write(f"### 📝 الأسئلة التدريبية ({num_questions} سؤال)")
-        st.markdown("اقرأ كل جملة أدناه وأجب عن سببها أو معناها بوضوح:")
+        st.write(f"### 📝 اختبار تفاعلي (اختيار من متعدد وصح وخطأ - {num_questions} سؤال)")
 
         for i in range(num_questions):
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            # صيغة عربية مباشرة تسأل عن "ليه" و"إزاي" من غير روتين
-            st.write(f"*السؤال {i+1}:* بخصوص جملة '{target_sent[:70]}...'، لماذا تحدث هذه الحالة أو ما هو تفسيرها العلمي/المنطقي؟")
-            
-            ans = st.text_input(f"إجابتك عن السؤال {i+1}:", key=f"ar_ans_{i}")
-            
-            if st.button(f"فحص السؤال {i+1}", key=f"ar_btn_{i}"):
-                if ans.strip():
-                    if len(ans.strip()) > 8:
-                        st.success(f"✅ إجابة ذكية وممتازة! لقد فهمت سبب حدوث ذلك.")
+            # سؤال زوجي (اختيار من متعدد) وسؤال فردي (صح وخطأ)
+            if i % 2 == 0:
+                st.write(f"*السؤال {i+1} (اختيار من متعدد):* بناءً على عبارة '{target_sent[:70]}...', أي مما يلي يمثل التفسير الأدق لها؟")
+                choice = st.radio(
+                    f"اختر الإجابة (السؤال {i+1}):",
+                    [
+                        "أ) تمثل الفكرة الجوهرية والسبب الأساسي للدرس.",
+                        "ب) تعتبر مجرد تفاصيل ثانوية غير مؤثرة.",
+                        "ج) تتناقض مع المفهوم العام للنص.",
+                        "د) لا علاقة لها بالموضوع."
+                    ],
+                    key=f"ar_mc_{i}"
+                )
+                if st.button(f"فحص السؤال {i+1}", key=f"ar_btn_{i}"):
+                    if choice.startswith("أ"):
+                        st.success("✅ إجابة صحيحة وممتازة! استوعبت المعنى بدقة.")
                     else:
-                        st.warning(f"❌ إجابتك مختصرة، وضحي أكثر لماذا يحدث هذا.")
-                else:
-                    st.error(f"⚠️ يرجى كتابة الإجابة أولاً.")
+                        st.warning("❌ إجابة غير دقيقة، الخيار (أ) هو الإجابة الصحيحة.")
+            else:
+                st.write(f"*السؤال {i+1} (صح أو خطأ):* عبارة '{target_sent[:70]}...' تعبر عن المفهوم الأساسي والمنطقي لهذا الدرس.")
+                tf_choice = st.radio(f"اختر الإجابة (السؤال {i+1}):", ["صح", "خطأ"], key=f"ar_tf_{i}")
+                if st.button(f"فحص السؤال {i+1}", key=f"ar_btn_{i}"):
+                    if tf_choice == "صح":
+                        st.success("✅ ممتاز! إجابتك صحيحة.")
+                    else:
+                        st.warning("❌ خطأ، هذه العبارة صحيحة حسب سياق النص.")
             st.write("---")
-
+            
     else:
         st.write("### 📖 Detailed Explanation:")
-        st.markdown(f"1. *Core Concept:* '{sentences[0][:100]}...'")
-        
-        st.write("---")
-        st.write(f"### 📝 Practice Questions ({num_questions})")
-
+        st.write(f"### 📝 Quiz ({num_questions} Questions)")
         for i in range(num_questions):
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
-            
-            st.write(f"*Question {i+1}:* Regarding '{target_sent[:70]}...', why and how does this happen? Explain.")
-            
-            ans = st.text_input(f"Your answer for Question {i+1}:", key=f"en_ans_{i}")
-            
-            if st.button(f"Check Question {i+1}", key=f"en_btn_{i}"):
-                if ans.strip():
-                    if len(ans.strip()) > 8:
-                        st.success(f"✅ Correct! Great logical explanation.")
-                    else:
-                        st.warning(f"❌ Too brief. Explain the reason or how it works in more detail.")
+            st.write(f"*Question {i+1}:* Regarding '{target_sent[:70]}...', is this statement true or false?")
+            ans = st.radio(f"Q{i+1} Answer:", ["True", "False"], key=f"en_{i}")
+            if st.button(f"Check Q{i+1}", key=f"en_btn_{i}"):
+                if ans == "True":
+                    st.success("✅ Correct!")
                 else:
-                    st.error(f"⚠️ Please type your answer first.")
+                    st.warning("❌ Incorrect.")
             st.write("---")
