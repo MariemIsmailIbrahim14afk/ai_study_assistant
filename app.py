@@ -137,5 +137,3 @@ if study_text.strip():
         custom_q = st.text_input("Is there a specific part you want me to re-explain slowly?")
         if custom_q:
             st.info(f"*Detailed Re-explanation:* Let's look closely at '{custom_q}'. Here is a slower, simpler breakdown of this specific concept so you can master it completely.")
-else:
-    st.info("Please upload a PDF file or type/paste text above to start. / Lütfen başlamak için bir PDF yükleyin veya metin girin. /  يرجي رفع ملف PDF للبدء .") 
