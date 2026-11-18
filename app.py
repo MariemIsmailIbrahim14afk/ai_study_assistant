@@ -134,4 +134,3 @@ if study_text.strip():
                     st.success("✅ Correct!")
                 else:
                     st.warning("❌ Incorrect.")
-            st.write("---")
