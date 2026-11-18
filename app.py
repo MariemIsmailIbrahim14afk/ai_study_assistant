@@ -36,8 +36,8 @@ if st.button("Generate Explanation & Quiz"):
         st.warning("Please provide some text or upload a PDF first!")
     else:
         try:
-            # استخدام الموديل القياسي المدعوم تماماً لتفادي أي خطأ 404
-            model = genai.GenerativeModel("models/gemini-1.5-flash")
+            # تم ضبط اسم الموديل بطريقة نظيفة وبسيطة جداً لتجنب أي خطأ 404
+            model = genai.GenerativeModel("gemini-1.5-flash")
             
             prompt = f"""
 You are an expert AI quiz generator and study assistant. 
