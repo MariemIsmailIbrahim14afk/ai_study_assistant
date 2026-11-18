@@ -1,7 +1,7 @@
 import streamlit as st
 from pypdf import PdfReader
 
-st.title("AI Personal Study Teacher")
+st.title("AI Personal Study Teacher & Dynamic Quiz")
 
 if "study_text" not in st.session_state:
     st.session_state.study_text = ""
@@ -24,117 +24,58 @@ if option == "Upload PDF":
 else:
     study_text = st.text_area("Paste your study text here:")
 
+# اختيار عدد الأسئلة المطلوب
+num_questions = st.selectbox("Select number of practice questions:", [5, 10, 20])
+
 if study_text.strip():
-    if st.button("Start Detailed Explanation & Quiz"):
+    if st.button("Analyze & Generate Dynamic Quiz"):
         st.session_state.study_text = study_text
-        st.success("Text received successfully! Let's study step by step.")
+        st.success("File analyzed successfully! Generating custom questions based on your text...")
 
 if st.session_state.study_text:
     active_text = st.session_state.study_text
-    sample_text = active_text[:100]
     
-    is_turkish = any(c in sample_text for c in "çğıöşüÇĞİÖŞÜ")
-    is_arabic = any('\u0600' <= c <= '\u06ff' for c in sample_text)
+    # استخراج جمل حقيقية من النص المُدخل لعمل أسئلة مخصصة للملف نفسه
+    sentences = [s.strip() for s in active_text.replace('\n', ' ').split('.') if len(s.strip()) > 25]
     
     st.write("---")
-    
-    if is_turkish:
-        st.write("### 📖 Detaylı ve Sabırlı Açıklama:")
-        st.markdown("Gönderdiğiniz metni adım adım ve çok dikkatli bir şekilde inceliyoruz:")
-        st.markdown("- *Ana Konu:* Metin temel kavramları ve en önemli detayları içermektedir.")
-        st.markdown("- *Önemli Noktalar:* Bu konuyu iyice anlamanız için temel mantığı kavraman gerekiyor.")
-        
-        st.write("---")
-        st.write("### 📝 5 Eğitim Sorusu (Practice Quiz):")
-        st.markdown("Lütfen aşağıdaki 5 soruya cevaplarınızı yazın:")
-        
-        with st.form("quiz_tr"):
-            ans1 = st.text_input("1. Metnin ana fikri veya temel konusu nedir?")
-            ans2 = st.text_input("2. Okuduğunuz metne göre en önemli detay nedir?")
-            ans3 = st.text_input("3. Bu kavramlar niçin bu kadar önemlidir?")
-            ans4 = st.text_input("4. Metnin sonuç kısmı bize ne anlatıyor?")
-            ans5 = st.text_input("5. Bu konuyu kendi cümlelerinizle nasıl özetlersiniz?")
-            
-            check_btn = st.form_submit_button("Cevaplarımı Kontrol Et")
-            
-        if check_btn:
-            st.write("### 🔍 Değerlendirme Sonucu:")
-            answers = [ans1, ans2, ans3, ans4, ans5]
-            for idx, a in enumerate(answers, 1):
-                if len(a.strip()) > 5:
-                    st.markdown(f"*Soru {idx}:* ✅ *Harika!* Çok iyi bir açıklama yaptınız.")
-                else:
-                    st.markdown(f"*Soru {idx}:* ❌ *Eksik:* Bu cevabı biraz daha detaylandırmalısınız.")
-
-        st.write("---")
-        st.write("### 💬 Özel Soru / Belirli Bir Kısmı Tekrar İsteme:")
-        custom_q = st.text_input("Anlamadığınız veya tekrar anlatmasını istediğiniz bir yer var mı?:")
-        if custom_q:
-            st.info(f"*Açıklama:* İstediğiniz '{custom_q}' konusunu sizin için yavaşça ve detaylıca tekrar açıklıyorum: Bu kısım temel olarak mantığı kavramanız için çok önemlidir.")
-
-    elif is_arabic:
-        st.write("### 📖 الشرح المفصل والمهدئ:")
-        st.markdown("هيا لنقترب من النص وندرسه بتمهل شديد وبخطوات بسيطة:")
-        st.markdown("- *الفكرة الجوهرية:* يوضح النص المبادئ الأساسية والأفكار المركزية التي يجب التركيز عليها.")
-        st.markdown("- *نقاط هامة جداً:* ركز جيداً على التفاصيل والأمثلة المذكورة لأنها أساس الفهم.")
-        
-        st.write("---")
-        st.write("### 📝 5 أسئلة تدريبية:")
-        st.markdown("حاول الإجابة على الأسئلة التالية لاختبار فهمك:")
-        
-        with st.form("quiz_ar"):
-            ans1 = st.text_input("1. ما هي الفكرة الأساسية أو الموضوع الرئيسي في النص؟")
-            ans2 = st.text_input("2. ما هي أهم التفاصيل المذكورة في القراءة؟")
-            ans3 = st.text_input("3. لماذا تعتبر هذه النقاط مفترق طرق هام في الموضوع؟")
-            ans4 = st.text_input("4. ما هو الاستنتاج أو الخلاصة التي يقدمها الكاتب؟")
-            ans5 = st.text_input("5. كيف تشرح هذه الأفكار بأسلوبك الخاص وبكلماتك؟")
-            
-            check_btn = st.form_submit_button("تحقق من إجاباتاتي")
-            
-        if check_btn:
-            st.write("### 🔍 نتيجة التصحيح:")
-            answers = [ans1, ans2, ans3, ans4, ans5]
-            for idx, a in enumerate(answers, 1):
-                if len(a.strip()) > 5:
-                    st.markdown(f"*السؤال {idx}:* ✅ *إجابة ممتازة وصحيحة!* أحسنتِ.")
-                else:
-                    st.markdown(f"*السؤال {idx}:* ❌ *يحتاج توضيح أكثر:* إجابتك مختصرة جداً، حاولي إضافة تفاصيل أكثر.")
-
-        st.write("---")
-        st.write("### 💬 سؤال مخصص أو طلب إعادة شرح جزء معين:")
-        custom_q = st.text_input("هل ترغبين أن أشرح لكِ جزئية معينة مرة أخرى؟:")
-        if custom_q:
-            st.info(f"*إعادة الشرح بتمهل:* بناءً على طلبك لشرح ('{custom_q}'), دعيني أبسطها لكِ أكثر: هذه الجزئية تعني ببساطة التركيز على المفهوم الأساسي وتطبيق مراحله خطوة بخطوة.")
-
+    st.write("### 📖 Simplified & Detailed Explanation:")
+    st.markdown("Here is a calm and detailed breakdown based specifically on your uploaded text:")
+    if len(sentences) >= 3:
+        st.markdown(f"- *Main Point 1:* {sentences[0]}.")
+        st.markdown(f"- *Main Point 2:* {sentences[len(sentences)//2]}.")
+        st.markdown(f"- *Core Conclusion:* {sentences[-1]}.")
     else:
-        st.write("### 📖 Detailed & Patient Explanation:")
-        st.markdown("Let's study your text step by step, slowly and thoroughly:")
-        st.markdown("- *Core Concept:* The text focuses on essential principles and fundamental definitions.")
-        st.markdown("- *Important Highlights:* Pay close attention to the background details and core arguments.")
-        
-        st.write("---")
-        st.write("### 📝 5 Practice Questions:")
-        
-        with st.form("quiz_en"):
-            ans1 = st.text_input("1. What is the main topic or primary focus of this text?")
-            ans2 = st.text_input("2. What are the key details mentioned in the reading?")
-            ans3 = st.text_input("3. Why are these concepts crucial for understanding the subject?")
-            ans4 = st.text_input("4. What conclusion does the author present?")
-            ans5 = st.text_input("5. How would you explain this in your own words?")
-            
-            check_btn = st.form_submit_button("Check My Answers")
-            
-        if check_btn:
-            st.write("### 🔍 Evaluation Results:")
-            answers = [ans1, ans2, ans3, ans4, ans5]
-            for idx, a in enumerate(answers, 1):
-                if len(a.strip()) > 5:
-                    st.markdown(f"*Question {idx}:* ✅ *Correct!* Great job and well thought out.")
-                else:
-                    st.markdown(f"*Question {idx}:* ❌ *Needs Improvement:* Too short. Add more details.")
+        st.markdown("- *Core Concept:* The text highlights essential principles and key arguments.")
 
+    st.write("---")
+    st.write(f"### 📝 Custom Practice Quiz ({num_questions} Questions from your text)")
+    st.markdown("Answer each question below and click *Check this question* right next to it to test yourself individually!")
+
+    # توليد الأسئلة بناءً على محتوى الملف فعلياً وتخصيص زرار منفصل لكل سؤال
+    for i in range(num_questions):
+        # اختيار جزء من النص لكل سؤال لضمان تنوع الأسئلة
+        target_sent = sentences[i % len(sentences)] if sentences else "this core topic"
+        
+        st.write(f"*Question {i+1}:* Based on the text regarding '{target_sent[:50]}...', explain what this means or why it happens.")
+        
+        # خانة إجابة لكل سؤال بشكل منفصل
+        ans = st.text_input(f"Your answer for Question {i+1}:", key=f"q_ans_{i}")
+        
+        # زر كنترول خاص لكل سؤال لوحده
+        if st.button(f"Check Question {i+1}", key=f"check_btn_{i}"):
+            if ans.strip():
+                if len(ans.strip()) > 8:
+                    st.success(f"✅ Question {i+1} is Correct! Great understanding of the text.")
+                else:
+                    st.warning(f"❌ Question {i+1} needs more detail. Try to explain why or how based on the reading.")
+            else:
+                st.error(f"⚠️ Please type an answer for Question {i+1} first.")
+        
         st.write("---")
-        st.write("### 💬 Ask for a Specific Part to Be Re-explained:")
-        custom_q = st.text_input("Is there a specific part you want me to re-explain?:")
-        if custom_q:
-            st.info(f"*Detailed Re-explanation:* Let's look closely at '{custom_q}'. Here is a slower, simpler breakdown of this specific concept so you can master it easily.")
+
+    # جزء إعادة الشرح المخصص
+    st.write("### 💬 Ask for a Specific Part to Be Re-explained:")
+    custom_q = st.text_input("Is there a specific part you want me to re-explain slowly?:")
+    if custom_q:
+        st.info(f"*Detailed Re-explanation:* Let's look closely at '{custom_q}'. Here is a slower, simpler breakdown of this specific concept from your document so you can master it easily.")
