@@ -31,8 +31,9 @@ if study_text.strip():
     is_arabic = any('\u0600' <= c <= '\u06ff' for c in sample_text)
     
     raw_sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()) > 25]
+    sentences = []
     for s in raw_sentences:
-    if s not in sentences:
+        if s not in sentences:
             sentences.append(s)
             
     if not sentences:
@@ -53,7 +54,6 @@ if study_text.strip():
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            # التنويع بين اختيار من متعدد وصح وغلط
             if i % 2 == 0:
                 st.write(f"*Soru {i+1} (Çoktan Seçmeli):* '{target_sent[:70]}...' ifadesi ile ilgili aşağıdakilerden hangisi söylenebilir?")
                 choice = st.radio(
@@ -78,7 +78,7 @@ if study_text.strip():
                     if tf_choice.startswith("Doğru"):
                         st.success("✅ Tebrikler, doğru cevap!")
                     else:
-                        st.warning("❌ Yanlıش، العبارة صحيحة في سياق النص.")
+                        st.warning("❌ Yanlış, العبارة صحيحة في سياق النص.")
             st.write("---")
 
     elif is_arabic:
@@ -94,7 +94,6 @@ if study_text.strip():
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            # سؤال زوجي (اختيار من متعدد) وسؤال فردي (صح وخطأ)
             if i % 2 == 0:
                 st.write(f"*السؤال {i+1} (اختيار من متعدد):* بناءً على عبارة '{target_sent[:70]}...', أي مما يلي يمثل التفسير الأدق لها؟")
                 choice = st.radio(
