@@ -37,7 +37,7 @@ if st.button("Generate Explanation & Quiz"):
     else:
         try:
             # تم ضبط اسم الموديل بطريقة نظيفة وبسيطة جداً لتجنب أي خطأ 404
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-1.5-pro")
             
             prompt = f"""
 You are an expert AI quiz generator and study assistant. 
