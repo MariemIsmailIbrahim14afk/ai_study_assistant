@@ -31,7 +31,6 @@ if study_text.strip():
     is_arabic = any('\u0600' <= c <= '\u06ff' for c in sample_text)
     
     raw_sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()] > 25]
-    sentences = []
     for s in raw_sentences:
         if s not in sentences:
             sentences.append(s)
