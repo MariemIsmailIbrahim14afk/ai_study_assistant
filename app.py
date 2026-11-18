@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 
-st.title("AI Personal Study Teacher")
+st.title("AI Personal Study Teacher - MARIEM ")
 
 option = st.radio("Choose input method / Giriş yöntemi / طريقة الإدخال:", ["Upload PDF", "Type/Paste Text"])
 
