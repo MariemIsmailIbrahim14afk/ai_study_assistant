@@ -1,5 +1,4 @@
 import streamlit as st
-from pypdf import PdfReader
 
 st.title("AI Personal Study Teacher")
 
@@ -10,6 +9,7 @@ study_text = ""
 if option == "Upload PDF":
     uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
     if uploaded_file is not None:
+        from pypdf import PdfReader
         with st.spinner("Reading your file... / Dosya okunuyor... / جاري قراءة الملف..."):
             try:
                 reader = PdfReader(uploaded_file)
@@ -29,8 +29,8 @@ if study_text.strip():
     is_turkish = any(c in sample_text for c in "çğıöşüÇĞİÖŞÜ")
     is_arabic = any('\u0600' <= c <= '\u06ff' for c in sample_text)
     
-    # تنظيف النص واستخراج جمل مفيدة وموضوعية
-    raw_sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()) > 35]
+    # استخراج الجمل بطريقة نظيفة
+    raw_sentences = [s.strip() for s in study_text.replace('\n', ' ').split('.') if len(s.strip()) > 25]
     sentences = []
     for s in raw_sentences:
         if s not in sentences:
@@ -43,113 +43,85 @@ if study_text.strip():
     
     if is_turkish:
         st.write("### 📖 Detaylı ve Sabırlı Açıklama:")
-        st.markdown("Gönderdiğiniz belgenin içeriğini dikkatlice analiz ediyor ve adım adım açıklıyoruz:")
-        
-        # عرض ملخص هادف ومستخرج من صلب النص بتركيز
-        st.markdown(f"1. *Ana Konu ve Giriş:* Metin incelendiğinde, temel odağın şu kavram üzerinde olduğu görülmektedir: '{sentences[0][:120]}...'. Bu kısım, konunun temelini anlamamız için anahtar niteliğindedir.")
+        st.markdown("Metniniz dikkatlice incelendi ve şu temel noktalar çıkarıldı:")
+        st.markdown(f"1. *Ana Odak:* '{sentences[0][:100]}...' - Bu ifade konunun temel taşını oluşturur.")
         if len(sentences) > 1:
-            st.markdown(f"2. *Detaylı Analiz:* Konunun ilerleyen kısımlarında şu önemli detay ele alınmaktadır: '{sentences[len(sentences)//2][:120]}...'. Burada yazar, konunun mantığını derinleştirmektedir.")
-        if len(sentences) > 2:
-            st.markdown(f"3. *Temel Sonuç:* Belgenin genel çerçevesinde varılan ana fikir ise şudur: '{sentences[-1][:120]}...'.")
+            st.markdown(f"2. *Detay ve Mantık:* '{sentences[len(sentences)//2][:100]}...' - Burada olayın veya kavramın sebebi açıklanmaktadır.")
 
         st.write("---")
-        st.write(f"### 📝 Metne Özel Pratik Testi ({num_questions} Soru)")
-        st.markdown("Her soruyu aşağıda yanıtlayıp hemen yanındaki butona basarak kontrol edebilirsiniz:")
+        st.write(f"### 📝 Pratik Soruları ({num_questions} Soru)")
+        st.markdown("Aşağıdaki soruları dikkatlice okuyup cevaplayın:")
 
         for i in range(num_questions):
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            st.write(f"*Soru {i+1}:* '{target_sent[:80]}...' konusuna dayanarak, bu ifadenin ana amacı veya mantığı nedir?")
+            # صيغة سؤال طبيعية ومباشرة بدون جمل محفوظة
+            st.write(f"*Soru {i+1}:* '{target_sent[:70]}...' ifadesine göre, bu durum neden ve nasıl gerçekleşmektedir? Açıklayınız.")
             
-            ans = st.text_input(f"Soru {i+1} için cevabınız:", key=f"tr_ans_{i}")
+            ans = st.text_input(f"Soru {i+1} cevabınız:", key=f"tr_ans_{i}")
             
             if st.button(f"Soru {i+1} Kontrol Et", key=f"tr_btn_{i}"):
                 if ans.strip():
                     if len(ans.strip()) > 8:
-                        st.success(f"✅ Soru {i+1} Doğru! Çok iyi bir analiz.")
+                        st.success(f"✅ Harika! Çok mantıklı bir açıklama yaptınız.")
                     else:
-                        st.warning(f"❌ Soru {i+1} eksik. Biraz daha detay eklemelisiniz.")
+                        st.warning(f"❌ Biraz kısa oldu. Nedenini veya nasıllığını biraz daha detaylandırın.")
                 else:
-                    st.error(f"⚠️ Lütfen önce Soru {i+1} için bir cevap yazın.")
+                    st.error(f"⚠️ Lütfen önce cevابınızı yazın.")
             st.write("---")
 
-        st.write("### 💬 Belirli Bir Kısmı Tekrar Açıklama İsteme:")
-        custom_q = st.text_input("Anlamadığınız veya detaylıca tekrar anlatmamı istediğiniz bir kısım var mı?")
-        if custom_q:
-            st.info(f"*Detaylı Açıklama:* '{custom_q}' konusunu senin için yavaşça ve derinlemesine açıklıyorum...")
-
     elif is_arabic:
-        st.write("### 📖 الشرح المفصل والمهدئ بتمهل شديد:")
-        st.markdown("لقد قمت بتحليل محتوى الملف بدقة ليكون الشرح هادفاً ومرتبطاً تماماً بموضوع دراستك:")
-        
-        # شرح تفصيلي وهادف مأخوذ من صلب الملف
-        st.markdown(f"1. *الفكرة الجوهرية والمدخل:* يتبين من قراءة الملف أن المحور الأساسي يدور حول هذه النقطة: '{sentences[0][:120]}...'. وتعتبر هذه القاعدة هي الأساس الذي يبنى عليه فهم باقي الدرس.")
+        st.write("### 📖 الشرح المفصل والمهدئ:")
+        st.markdown("قمت بتحليل النص الذي أرسلتِه لنفهم فكرته بعمق:")
+        st.markdown(f"1. *الفكرة الأساسية:* '{sentences[0][:100]}...' - هذه هي القاعدة التي يبدأ منها فهم الموضوع.")
         if len(sentences) > 1:
-            st.markdown(f"2. *التحليل العميق والتفاصيل:* يتعمق النص بعد ذلك ليشرح هذه الحيثية الهامة: '{sentences[len(sentences)//2][:120]}...'. وهنا يوضح الكاتب الفكرة بطريقة عملية ومنطقية.")
-        if len(sentences) > 2:
-            st.markdown(f"3. *الخلاصة والهدف:* يختتم السياق بهذه النتيجة الرئيسية: '{sentences[-1][:120]}...' والتي تجمع أفكار الموضوع معاً.")
+            st.markdown(f"2. *السبب والمنطق:* '{sentences[len(sentences)//2][:100]}...' - وهنا يوضح النص سبب حدوث هذا الأمر.")
 
         st.write("---")
-        st.write(f"### 📝 أسئلة تدريبية مستخرجة من النص ({num_questions} سؤال)")
-        st.markdown("أجب عن كل سؤال في المربع الخاص به، ثم اضغط على زر التحقق المجاور له فوراً:")
+        st.write(f"### 📝 الأسئلة التدريبية ({num_questions} سؤال)")
+        st.markdown("اقرأ كل جملة أدناه وأجب عن سببها أو معناها بوضوح:")
 
         for i in range(num_questions):
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            st.write(f"*السؤال {i+1}:* بناءً على ما ورد في النص حول '{target_sent[:80]}...'، اشرح بأسلوبك ما تعنيه هذه الجزئية بالتحديد ولماذا تم طرحها؟")
+            # صيغة عربية مباشرة تسأل عن "ليه" و"إزاي" من غير روتين
+            st.write(f"*السؤال {i+1}:* بخصوص جملة '{target_sent[:70]}...'، لماذا تحدث هذه الحالة أو ما هو تفسيرها العلمي/المنطقي؟")
             
             ans = st.text_input(f"إجابتك عن السؤال {i+1}:", key=f"ar_ans_{i}")
             
             if st.button(f"فحص السؤال {i+1}", key=f"ar_btn_{i}"):
                 if ans.strip():
                     if len(ans.strip()) > 8:
-                        st.success(f"✅ السؤال {i+1} صحيح وممتاز! لقد استوعبت الفكرة جيداً.")
+                        st.success(f"✅ إجابة ذكية وممتازة! لقد فهمت سبب حدوث ذلك.")
                     else:
-                        st.warning(f"❌ السؤال {i+1} يحتاج إثراءً أكثر. حاولي إضافة تفاصيل مستمدة من النص.")
+                        st.warning(f"❌ إجابتك مختصرة، وضحي أكثر لماذا يحدث هذا.")
                 else:
-                    st.error(f"⚠️ يرجى كتابة الإجابة في الحانة المخصصة للسؤال {i+1} أولاً.")
+                    st.error(f"⚠️ يرجى كتابة الإجابة أولاً.")
             st.write("---")
 
-        st.write("### 💬 طلب إعادة شرح جزء معين بتمهل:")
-        custom_q = st.text_input("هل هناك جزئية معينة تشعرين أنها صعبة وترغبين أن أشرحها لكِ مرة أخرى ببطء؟")
-        if custom_q:
-            st.info(f"*إعادة الشرح المفصل:* دعيني أشرح لكِ جزئية ('{custom_q}') بطريقة أبسط وبتمهل شديد...")
-
     else:
-        st.write("### 📖 Detailed and Patient Explanation:")
-        st.markdown("Here is a structured and deep breakdown based directly on your document's core content:")
+        st.write("### 📖 Detailed Explanation:")
+        st.markdown(f"1. *Core Concept:* '{sentences[0][:100]}...'")
         
-        st.markdown(f"1. *Core Focus:* The text centers around this primary concept: '{sentences[0][:120]}...'. This establishes the foundation for your study.")
-        if len(sentences) > 1:
-            st.markdown(f"2. *In-depth Analysis:* Further into the reading, the author elaborates on: '{sentences[len(sentences)//2][:120]}...'.")
-        if len(sentences) > 2:
-            st.markdown(f"3. *Key Takeaway:* The document concludes with: '{sentences[-1][:120]}...'.")
-
         st.write("---")
-        st.write(f"### 📝 Custom Practice Quiz ({num_questions} Questions from your text)")
-        st.markdown("Answer each question below and click the specific check button right next to it:")
+        st.write(f"### 📝 Practice Questions ({num_questions})")
 
         for i in range(num_questions):
             sent_index = (i * max(1, len(sentences) // num_questions)) % len(sentences)
             target_sent = sentences[sent_index]
             
-            st.write(f"*Question {i+1}:* Based on the text regarding '{target_sent[:80]}...', explain its core meaning and significance.")
+            st.write(f"*Question {i+1}:* Regarding '{target_sent[:70]}...', why and how does this happen? Explain.")
             
             ans = st.text_input(f"Your answer for Question {i+1}:", key=f"en_ans_{i}")
             
             if st.button(f"Check Question {i+1}", key=f"en_btn_{i}"):
                 if ans.strip():
                     if len(ans.strip()) > 8:
-                        st.success(f"✅ Question {i+1} is Correct! Great understanding.")
+                        st.success(f"✅ Correct! Great logical explanation.")
                     else:
-                        st.warning(f"❌ Question {i+1} needs more detail from the reading.")
+                        st.warning(f"❌ Too brief. Explain the reason or how it works in more detail.")
                 else:
-                    st.error(f"⚠️ Please type an answer for Question {i+1} first.")
+                    st.error(f"⚠️ Please type your answer first.")
             st.write("---")
-
-        st.write("### 💬 Ask for a Specific Part to Be Re-explained:")
-        custom_q = st.text_input("Is there a specific part you want me to re-explain slowly?")
-        if custom_q:
-            st.info(f"*Detailed Re-explanation:* Let's look closely at '{custom_q}'. Here is a slower, simpler breakdown...")
